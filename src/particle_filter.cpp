@@ -29,10 +29,10 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	default_random_engine gen;
 	double std_x, std_y, std_theta; // Standard deviations for x, y, and theta
 
-	// TODO: Set standard deviations for x, y, and theta
-	 std_x = std[0];
-	 std_y = std[1];
-	 std_theta = std[2];
+	// Set standard deviations for x, y, and theta
+	std_x = std[0];
+	std_y = std[1];
+	std_theta = std[2];
 	 
 
 	// This line creates a normal (Gaussian) distribution for x, y and theta
@@ -72,6 +72,64 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	// NOTE: When adding noise you may find std::normal_distribution and std::default_random_engine useful.
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
+	
+	//assert(velocity > 0.0);
+	
+	default_random_engine gen;
+	double std_x, std_y, std_theta; // Standard deviations for x, y, and theta
+
+	// Set standard deviations for x, y, and theta
+	std_x = std_pos[0];
+	std_y = std_pos[1];
+	std_theta = std_pos[2];
+	
+	
+	for (int i = 0; i < num_particles; ++i) {
+		Particle p = particles[i];
+		
+		// This line creates a normal (Gaussian) distribution for x, y and theta
+		normal_distribution<double> dist_x(p.x, std_x);
+		normal_distribution<double> dist_y(p.y, std_y);
+		normal_distribution<double> dist_theta(p.theta, std_theta);
+		
+		p.theta += dist_theta(gen);
+		p.x += dist_x(gen);
+		p.y += dist_y(gen);
+		
+		//avoid division by zero
+		if (fabs(yaw_rate) > 0.001) {
+			p.x = p.x + velocity/yaw_rate * ( sin (p.theta + yaw_rate*delta_t) - sin(p.theta));
+			p.y = p.y + velocity/yaw_rate * ( cos(p.theta) - cos(p.theta + yaw_rate*delta_t) );
+		}
+		else {
+			p.x = p.x + velocity*delta_t*cos(p.theta);
+			p.y = p.y + velocity*delta_t*sin(p.theta);
+		}
+		
+		particles[i] = p;
+	}
+	
+	/*if forward < 0:
+            raise ValueError, 'Robot cant move backwards'         
+        
+        # turn, and add randomness to the turning command
+        orientation = self.orientation + float(turn) + random.gauss(0.0, self.turn_noise)
+        orientation %= 2 * pi
+        
+        # move, and add randomness to the motion command
+        dist = float(forward) + random.gauss(0.0, self.forward_noise)
+        x = self.x + (cos(orientation) * dist)
+        y = self.y + (sin(orientation) * dist)
+        x %= world_size    # cyclic truncate
+        y %= world_size
+        
+        # set particle
+        res = robot()
+        res.set(x, y, orientation)
+        res.set_noise(self.forward_noise, self.turn_noise, self.sense_noise)
+        return res
+		
+		*/
 
 }
 
