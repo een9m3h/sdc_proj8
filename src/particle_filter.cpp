@@ -92,9 +92,9 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		normal_distribution<double> dist_y(p.y, std_y);
 		normal_distribution<double> dist_theta(p.theta, std_theta);
 		
-		p.theta += dist_theta(gen);
-		p.x += dist_x(gen);
-		p.y += dist_y(gen);
+		p.theta = dist_theta(gen);
+		p.x = dist_x(gen);
+		p.y = dist_y(gen);
 		
 		//avoid division by zero
 		if (fabs(yaw_rate) > 0.001) {
@@ -108,28 +108,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		
 		particles[i] = p;
 	}
-	
-	/*if forward < 0:
-            raise ValueError, 'Robot cant move backwards'         
-        
-        # turn, and add randomness to the turning command
-        orientation = self.orientation + float(turn) + random.gauss(0.0, self.turn_noise)
-        orientation %= 2 * pi
-        
-        # move, and add randomness to the motion command
-        dist = float(forward) + random.gauss(0.0, self.forward_noise)
-        x = self.x + (cos(orientation) * dist)
-        y = self.y + (sin(orientation) * dist)
-        x %= world_size    # cyclic truncate
-        y %= world_size
-        
-        # set particle
-        res = robot()
-        res.set(x, y, orientation)
-        res.set_noise(self.forward_noise, self.turn_noise, self.sense_noise)
-        return res
-		
-		*/
 
 }
 
@@ -201,4 +179,36 @@ string ParticleFilter::getSenseY(Particle best)
     string s = ss.str();
     s = s.substr(0, s.length()-1);  // get rid of the trailing space
     return s;
+}
+
+double calcEuclidDist(double x1, double y1, double x2, double y2)
+{
+	double x = x1 - x2; //calculating number to square in next step
+	double y = y1 - y2;
+	double dist;
+
+	dist = pow(x, 2) + pow(y, 2);       //calculating Euclidean distance
+	dist = sqrt(dist);                  
+
+	return dist;
+}
+
+void mapTransate(const Particle& p, std::vector<LandmarkObs> &observations){
+	
+	
+	for(int i = 0; i < observations.size(); i++){
+		
+		double x_map, y_map;
+		
+		LandmarkObs obs = observations[i];
+	
+		///* transform to map x coordinate
+		x_map= p.x + (cos(p.theta) * obs.x) - (sin(p.theta) * obs.y);
+
+		///* transform to map y coordinate
+		y_map= p.y + (sin(p.theta) * obs.x) + (cos(p.theta) * obs.y);
+		
+		observations[i].x = x_map;
+		observations[i].y = y_map;
+	}
 }
