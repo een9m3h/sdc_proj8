@@ -38,6 +38,13 @@ class ParticleFilter {
 	// Vector of weights of all particles
 	std::vector<double> weights;
 	
+	void mapTransate(const Particle& p, std::vector<LandmarkObs> &observations);
+	double calcEuclidDist(LandmarkObs a, LandmarkObs b);
+	double calcEuclidDist(LandmarkObs a, Map::single_landmark_s b);
+	std::vector<LandmarkObs> rangeFilter(double sensor_range, Particle &p, const Map &map_landmarks);
+	double calcWeight(double std_landmark[], LandmarkObs a, LandmarkObs b);
+	double calcParticleWeight(double std_landmark[], std::vector<LandmarkObs> a, std::vector<LandmarkObs> b);
+	
 public:
 	
 	// Set of current particles
@@ -78,7 +85,7 @@ public:
 	 * @param predicted Vector of predicted landmark observations
 	 * @param observations Vector of landmark observations
 	 */
-	void dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations);
+	std::vector<LandmarkObs> dataAssociation(Particle &p, double sensor_range, std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations);
 	
 	/**
 	 * updateWeights Updates the weights for each particle based on the likelihood of the 
